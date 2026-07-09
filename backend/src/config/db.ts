@@ -1,48 +1,47 @@
-import mongoose, { Schema } from 'mongoose';
+import { createClient } from '@supabase/supabase-js';
 import { MockModel } from '../models/mockDb.js';
 
-let isMongoConnected = false;
+let isSupabaseConnected = false;
+let supabaseClient: any = null;
 const mockModels: Record<string, MockModel<any>> = {};
 
 export async function connectDB() {
-  const mongoUri = process.env.MONGODB_URI;
-  if (!mongoUri) {
-    console.log('No MONGODB_URI found in environment. Using Local File JSON Database.');
-    isMongoConnected = false;
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    console.log('No SUPABASE_URL / SUPABASE_KEY found in environment. Using Local File JSON Database.');
+    isSupabaseConnected = false;
     return;
   }
 
   try {
-    mongoose.set('strictQuery', true);
-    await mongoose.connect(mongoUri);
-    console.log('MongoDB connected successfully!');
-    isMongoConnected = true;
+    supabaseClient = createClient(supabaseUrl, supabaseKey);
+    console.log('Supabase client initialized successfully!');
+    isSupabaseConnected = true;
   } catch (error) {
-    console.error('MongoDB connection failed. Using Local File JSON Database fallback. Error:', error);
-    isMongoConnected = false;
+    console.error('Supabase initialization failed. Using Local File JSON Database fallback. Error:', error);
+    isSupabaseConnected = false;
   }
 }
 
-export function getModel<T extends { _id?: string; createdAt?: string; updatedAt?: string }>(
-  modelName: string,
-  schema: Schema
-): any {
-  // If MongoDB is connected, return the standard mongoose model
-  // If not, return our File-based Mock Model
-  if (isMongoConnected) {
-    try {
-      return mongoose.model(modelName);
-    } catch {
-      return mongoose.model(modelName, schema);
-    }
-  } else {
-    if (!mockModels[modelName]) {
-      mockModels[modelName] = new MockModel<T>(modelName);
-    }
-    return mockModels[modelName];
+export function getSupabaseClient() {
+  return supabaseClient;
+}
+
+export function isSupabaseActive() {
+  return isSupabaseConnected;
+}
+
+export function getMockModel<T extends { _id?: string; createdAt?: string; updatedAt?: string }>(
+  modelName: string
+): MockModel<T> {
+  if (!mockModels[modelName]) {
+    mockModels[modelName] = new MockModel<T>(modelName);
   }
+  return mockModels[modelName];
 }
 
 export function getDbMode(): string {
-  return isMongoConnected ? 'MongoDB' : 'Local JSON Files';
+  return isSupabaseConnected ? 'Supabase' : 'Local JSON Files';
 }

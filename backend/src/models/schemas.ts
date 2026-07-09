@@ -1,5 +1,4 @@
-import { Schema } from 'mongoose';
-import { getModel } from '../config/db.js';
+import { isSupabaseActive, getSupabaseClient, getMockModel } from '../config/db.js';
 
 // ==========================================
 // 1. USER
@@ -15,16 +14,6 @@ export interface IUser {
   updatedAt?: string;
 }
 
-const UserSchema = new Schema<IUser>({
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  role: { type: String, enum: ['Admin', 'Staff'], default: 'Staff' },
-  name: { type: String, required: true },
-  branchId: { type: String, default: 'main' }
-}, { timestamps: true });
-
-export const User = getModel<IUser>('User', UserSchema);
-
 // ==========================================
 // 2. CUSTOMER
 // ==========================================
@@ -35,71 +24,33 @@ export interface ICustomer {
   email: string;
   vehicleNumber: string;
   loyaltyPoints: number;
-  purchaseHistory: string[]; // Invoice IDs
+  purchaseHistory: string[];
   serviceHistory: Array<{ date: string; description: string; cost: number }>;
   vehicleRecords: Array<{ vehicleNumber: string; model: string; lastServiceDate?: string }>;
   createdAt?: string;
   updatedAt?: string;
 }
 
-const CustomerSchema = new Schema<ICustomer>({
-  name: { type: String, required: true },
-  mobile: { type: String, required: true },
-  email: { type: String },
-  vehicleNumber: { type: String, required: true },
-  loyaltyPoints: { type: Number, default: 0 },
-  purchaseHistory: [{ type: String }],
-  serviceHistory: [{
-    date: { type: String },
-    description: { type: String },
-    cost: { type: Number }
-  }],
-  vehicleRecords: [{
-    vehicleNumber: { type: String },
-    model: { type: String },
-    lastServiceDate: { type: String }
-  }]
-}, { timestamps: true });
-
-export const Customer = getModel<ICustomer>('Customer', CustomerSchema);
-
 // ==========================================
 // 3. PRODUCT (INVENTORY)
 // ==========================================
 export interface IProduct {
   _id?: string;
-  productId: string; // SKU or Barcode
+  productId: string;
   brand: string;
   model: string;
-  vehicleType: string; // Car, SUV, Bike, Truck
-  capacity: number; // Ah
-  warrantyPeriod: number; // in months
+  vehicleType: string;
+  capacity: number;
+  warrantyPeriod: number;
   purchasePrice: number;
   sellingPrice: number;
   quantity: number;
   supplier: string;
-  location: string; // Aisle, Shelf, etc.
+  location: string;
   branchId: string;
   createdAt?: string;
   updatedAt?: string;
 }
-
-const ProductSchema = new Schema<IProduct>({
-  productId: { type: String, required: true, unique: true },
-  brand: { type: String, required: true },
-  model: { type: String, required: true },
-  vehicleType: { type: String, required: true },
-  capacity: { type: Number, required: true },
-  warrantyPeriod: { type: Number, required: true },
-  purchasePrice: { type: Number, required: true },
-  sellingPrice: { type: Number, required: true },
-  quantity: { type: Number, default: 0 },
-  supplier: { type: String },
-  location: { type: String },
-  branchId: { type: String, default: 'main' }
-}, { timestamps: true });
-
-export const Product = getModel<IProduct>('Product', ProductSchema);
 
 // ==========================================
 // 4. SUPPLIER
@@ -116,22 +67,6 @@ export interface ISupplier {
   updatedAt?: string;
 }
 
-const SupplierSchema = new Schema<ISupplier>({
-  name: { type: String, required: true },
-  contactPerson: { type: String },
-  mobile: { type: String, required: true },
-  email: { type: String },
-  outstandingDues: { type: Number, default: 0 },
-  ledger: [{
-    date: { type: String },
-    description: { type: String },
-    amount: { type: Number },
-    type: { type: String, enum: ['credit', 'debit'] }
-  }]
-}, { timestamps: true });
-
-export const Supplier = getModel<ISupplier>('Supplier', SupplierSchema);
-
 // ==========================================
 // 5. PURCHASE
 // ==========================================
@@ -147,24 +82,6 @@ export interface IPurchase {
   createdAt?: string;
   updatedAt?: string;
 }
-
-const PurchaseSchema = new Schema<IPurchase>({
-  purchaseOrderNumber: { type: String, required: true },
-  supplierId: { type: String, required: true },
-  branchId: { type: String, default: 'main' },
-  items: [{
-    productId: { type: String, required: true },
-    brand: { type: String },
-    model: { type: String },
-    qty: { type: Number, required: true },
-    purchasePrice: { type: Number, required: true }
-  }],
-  totalAmount: { type: Number, required: true },
-  status: { type: String, enum: ['Pending', 'Received'], default: 'Pending' },
-  receivedDate: { type: String }
-}, { timestamps: true });
-
-export const Purchase = getModel<IPurchase>('Purchase', PurchaseSchema);
 
 // ==========================================
 // 6. INVOICE (SALES)
@@ -199,33 +116,6 @@ export interface IInvoice {
   updatedAt?: string;
 }
 
-const InvoiceSchema = new Schema<IInvoice>({
-  invoiceNumber: { type: String, required: true, unique: true },
-  customerName: { type: String, required: true },
-  mobileNumber: { type: String, required: true },
-  vehicleNumber: { type: String, required: true },
-  items: [{
-    productId: { type: String, required: true },
-    brand: { type: String },
-    model: { type: String },
-    qty: { type: Number, required: true },
-    price: { type: Number, required: true },
-    gstAmount: { type: Number, default: 0 },
-    discountAmount: { type: Number, default: 0 },
-    total: { type: Number, required: true }
-  }],
-  subTotal: { type: Number, required: true },
-  gstTotal: { type: Number, required: true },
-  discountTotal: { type: Number, default: 0 },
-  totalAmount: { type: Number, required: true },
-  paymentMethod: { type: String, enum: ['Cash', 'Card', 'UPI', 'Credit'], default: 'Cash' },
-  branchId: { type: String, default: 'main' },
-  status: { type: String, enum: ['Paid', 'Unpaid'], default: 'Paid' },
-  staffId: { type: String }
-}, { timestamps: true });
-
-export const Invoice = getModel<IInvoice>('Invoice', InvoiceSchema);
-
 // ==========================================
 // 7. WARRANTY CLAIM
 // ==========================================
@@ -248,24 +138,6 @@ export interface IWarrantyClaim {
   updatedAt?: string;
 }
 
-const WarrantyClaimSchema = new Schema<IWarrantyClaim>({
-  claimNumber: { type: String, required: true, unique: true },
-  invoiceNumber: { type: String, required: true },
-  customerName: { type: String, required: true },
-  mobileNumber: { type: String, required: true },
-  productId: { type: String, required: true },
-  brand: { type: String },
-  model: { type: String },
-  serialNumber: { type: String, required: true },
-  issueDescription: { type: String },
-  status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
-  claimDate: { type: String, required: true },
-  resolvedDate: { type: String },
-  notes: { type: String }
-}, { timestamps: true });
-
-export const WarrantyClaim = getModel<IWarrantyClaim>('WarrantyClaim', WarrantyClaimSchema);
-
 // ==========================================
 // 8. NOTIFICATION
 // ==========================================
@@ -279,16 +151,6 @@ export interface INotification {
   createdAt?: string;
   updatedAt?: string;
 }
-
-const NotificationSchema = new Schema<INotification>({
-  type: { type: String, required: true },
-  title: { type: String, required: true },
-  message: { type: String, required: true },
-  read: { type: Boolean, default: false },
-  branchId: { type: String, default: 'all' }
-}, { timestamps: true });
-
-export const Notification = getModel<INotification>('Notification', NotificationSchema);
 
 // ==========================================
 // 9. SETTING
@@ -309,26 +171,6 @@ export interface ISetting {
   updatedAt?: string;
 }
 
-const SettingSchema = new Schema<ISetting>({
-  shopName: { type: String, required: true, default: 'CAR Battery ERP' },
-  logoUrl: { type: String },
-  gstNumber: { type: String },
-  address: { type: String },
-  phone: { type: String },
-  email: { type: String },
-  invoiceFormat: { type: String, default: 'Standard GST' },
-  whatsappApiKey: { type: String },
-  smtpConfig: {
-    host: { type: String },
-    port: { type: Number },
-    user: { type: String },
-    pass: { type: String }
-  },
-  theme: { type: String, default: 'red-light' }
-}, { timestamps: true });
-
-export const Setting = getModel<ISetting>('Setting', SettingSchema);
-
 // ==========================================
 // 10. BRANCH
 // ==========================================
@@ -342,11 +184,178 @@ export interface IBranch {
   updatedAt?: string;
 }
 
-const BranchSchema = new Schema<IBranch>({
-  name: { type: String, required: true },
-  location: { type: String, required: true },
-  code: { type: String, required: true, unique: true },
-  contactNumber: { type: String, required: true }
-}, { timestamps: true });
+// ==========================================
+// Unified Supabase & JSON Fallback Model Wrapper
+// ==========================================
+class SupabaseModelWrapper<T extends { _id?: string; createdAt?: string; updatedAt?: string }> {
+  private tableName: string;
+  private mockModelName: string;
 
-export const Branch = getModel<IBranch>('Branch', BranchSchema);
+  constructor(tableName: string, mockModelName: string) {
+    this.tableName = tableName;
+    this.mockModelName = mockModelName;
+  }
+
+  private get client() {
+    return getSupabaseClient();
+  }
+
+  private get mock() {
+    return getMockModel<T>(this.mockModelName);
+  }
+
+  private applyFilters(query: any, filter: any) {
+    let q = query;
+    for (const key of Object.keys(filter)) {
+      const val = filter[key];
+      if (val !== undefined && val !== null) {
+        if (typeof val === 'object' && !Array.isArray(val)) {
+          if (val.$gte !== undefined) q = q.gte(key, val.$gte);
+          if (val.$lte !== undefined) q = q.lte(key, val.$lte);
+          if (val.$regex !== undefined) q = q.ilike(key, `%${val.$regex}%`);
+          if (val.$in !== undefined) q = q.in(key, val.$in);
+        } else {
+          // Map _id requests to id for queries in Postgres
+          const mappedKey = key === '_id' ? 'id' : key;
+          const isNumeric = mappedKey === 'id' && /^\d+$/.test(val);
+          const parsedVal = isNumeric ? parseInt(val, 10) : val;
+          q = q.eq(mappedKey, parsedVal);
+        }
+      }
+    }
+    return q;
+  }
+
+  async find(filter: any = {}) {
+    if (isSupabaseActive()) {
+      let query = this.client.from(this.tableName).select('*');
+      query = this.applyFilters(query, filter);
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data || []).map((item: any) => ({
+        ...item,
+        _id: item.id?.toString()
+      })) as T[];
+    } else {
+      return await this.mock.find(filter);
+    }
+  }
+
+  async findOne(filter: any = {}) {
+    if (isSupabaseActive()) {
+      let query = this.client.from(this.tableName).select('*');
+      query = this.applyFilters(query, filter);
+      const { data, error } = await query.limit(1).maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+      return { ...data, _id: data.id?.toString() } as T;
+    } else {
+      return await this.mock.findOne(filter);
+    }
+  }
+
+  async findById(id: string) {
+    if (isSupabaseActive()) {
+      const isNumeric = /^\d+$/.test(id);
+      const parsedId = isNumeric ? parseInt(id, 10) : id;
+      const { data, error } = await this.client.from(this.tableName).select('*').eq('id', parsedId).maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+      return { ...data, _id: data.id?.toString() } as T;
+    } else {
+      return await this.mock.findById(id);
+    }
+  }
+
+  async create(doc: any) {
+    if (isSupabaseActive()) {
+      const cleanDoc = { ...doc };
+      delete cleanDoc._id;
+      delete cleanDoc.id;
+      
+      const { data, error } = await this.client.from(this.tableName).insert([cleanDoc]).select().single();
+      if (error) throw error;
+      return { ...data, _id: data.id?.toString() } as T;
+    } else {
+      return await this.mock.create(doc);
+    }
+  }
+
+  async findByIdAndUpdate(id: string, update: any, options: any = {}) {
+    if (isSupabaseActive()) {
+      const isNumeric = /^\d+$/.test(id);
+      const parsedId = isNumeric ? parseInt(id, 10) : id;
+      const cleanUpdate = { ...update };
+      delete cleanUpdate._id;
+      delete cleanUpdate.id;
+      
+      const { data, error } = await this.client.from(this.tableName).update(cleanUpdate).eq('id', parsedId).select().maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+      return { ...data, _id: data.id?.toString() } as T;
+    } else {
+      return await this.mock.findByIdAndUpdate(id, update, options);
+    }
+  }
+
+  async findOneAndUpdate(filter: any, update: any, options: any = {}) {
+    if (isSupabaseActive()) {
+      const item = await this.findOne(filter);
+      if (!item) {
+        if (options.upsert) {
+          return await this.create(update);
+        }
+        return null;
+      }
+      return await this.findByIdAndUpdate(item._id || '', update, options);
+    } else {
+      const item = await this.mock.findOne(filter);
+      if (!item) {
+        if (options.upsert) {
+          return await this.mock.create(update);
+        }
+        return null;
+      }
+      return await this.mock.findByIdAndUpdate(item._id || '', update, options);
+    }
+  }
+
+  async findByIdAndDelete(id: string) {
+    if (isSupabaseActive()) {
+      const isNumeric = /^\d+$/.test(id);
+      const parsedId = isNumeric ? parseInt(id, 10) : id;
+      const { data, error } = await this.client.from(this.tableName).delete().eq('id', parsedId).select().maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+      return { ...data, _id: data.id?.toString() } as T;
+    } else {
+      return await this.mock.findByIdAndDelete(id);
+    }
+  }
+
+  async countDocuments(filter: any = {}) {
+    if (isSupabaseActive()) {
+      let query = this.client.from(this.tableName).select('*', { count: 'exact', head: true });
+      query = this.applyFilters(query, filter);
+      const { count, error } = await query;
+      if (error) throw error;
+      return count || 0;
+    } else {
+      return await this.mock.countDocuments(filter);
+    }
+  }
+}
+
+// ==========================================
+// Exports wrappers matching the original model names
+// ==========================================
+export const User = new SupabaseModelWrapper<IUser>('users', 'User');
+export const Customer = new SupabaseModelWrapper<ICustomer>('customers', 'Customer');
+export const Product = new SupabaseModelWrapper<IProduct>('products', 'Product');
+export const Supplier = new SupabaseModelWrapper<ISupplier>('suppliers', 'Supplier');
+export const Purchase = new SupabaseModelWrapper<IPurchase>('purchases', 'Purchase');
+export const Invoice = new SupabaseModelWrapper<IInvoice>('invoices', 'Invoice');
+export const WarrantyClaim = new SupabaseModelWrapper<IWarrantyClaim>('warranty_claims', 'WarrantyClaim');
+export const Notification = new SupabaseModelWrapper<INotification>('notifications', 'Notification');
+export const Setting = new SupabaseModelWrapper<ISetting>('settings', 'Setting');
+export const Branch = new SupabaseModelWrapper<IBranch>('branches', 'Branch');
