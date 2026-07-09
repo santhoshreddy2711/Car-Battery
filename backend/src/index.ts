@@ -53,17 +53,36 @@ app.use('/api/settings', settingRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/notifications', notificationRoutes);
 
+let lastSeedingStatus = 'Not started';
+let lastSeedingError: any = null;
+
 // Simple Health Check
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'Healthy',
-    dbMode: getDbMode(),
-    timestamp: new Date().toISOString()
-  });
+app.get('/api/health', async (req, res) => {
+  try {
+    const userCount = await User.countDocuments();
+    res.json({
+      status: 'Healthy',
+      dbMode: getDbMode(),
+      seedingStatus: lastSeedingStatus,
+      seedingError: lastSeedingError,
+      userCount,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error: any) {
+    res.json({
+      status: 'Degraded',
+      dbMode: getDbMode(),
+      seedingStatus: lastSeedingStatus,
+      seedingError: lastSeedingError,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // Auto-Seeder Function
 async function seedDefaultData() {
+  lastSeedingStatus = 'Seeding started';
   try {
     // 1. Users Seed
     const userCount = await User.countDocuments();
@@ -518,8 +537,10 @@ async function seedDefaultData() {
         branchId: 'all'
       });
     }
-
-  } catch (error) {
+    lastSeedingStatus = 'Completed successfully';
+  } catch (error: any) {
+    lastSeedingStatus = 'Failed';
+    lastSeedingError = { message: error.message, stack: error.stack, details: error };
     console.error('Data seeding failed:', error);
   }
 }
