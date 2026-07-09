@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
-// Set default axios base URL to match backend PORT
-axios.defaults.baseURL = 'http://localhost:5000';
+// Set default axios base URL dynamically for production/dev environments
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 interface UserProfile {
   _id: string;
