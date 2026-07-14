@@ -32,6 +32,52 @@ export const Billing: React.FC = () => {
     vehicleNumber: ''
   });
 
+  // Validation States
+  const [phoneValid, setPhoneValid] = useState(false);
+  const [vehicleValid, setVehicleValid] = useState(false);
+  const [phoneError, setPhoneError] = useState('');
+  const [vehicleError, setVehicleError] = useState('');
+
+  const handlePhoneChange = (val: string) => {
+    // Accept only digits and limit to 10 characters
+    const sanitized = val.replace(/\D/g, '').slice(0, 10);
+    setCustomer(prev => ({ ...prev, mobile: sanitized }));
+    const isValid = /^\d{10}$/.test(sanitized);
+    setPhoneValid(isValid);
+    if (!isValid && sanitized.length > 0) {
+      setPhoneError('Phone number must contain exactly 10 digits.');
+    } else {
+      setPhoneError('');
+    }
+  };
+
+  const handleVehicleChange = (val: string) => {
+    // Convert to uppercase, strip invalid characters (spaces and symbols)
+    const sanitized = val.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    setCustomer(prev => ({ ...prev, vehicleNumber: sanitized }));
+    const isValid = /^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/.test(sanitized);
+    setVehicleValid(isValid);
+    if (!isValid && sanitized.length > 0) {
+      setVehicleError('Enter a valid registration number (Example: TG08GU3055).');
+    } else {
+      setVehicleError('');
+    }
+  };
+
+  const getPhoneClass = () => {
+    if (customer.mobile.length === 0) return 'w-full pl-8 pr-3 py-2 text-xs rounded-xl glass-input';
+    return phoneValid 
+      ? 'w-full pl-8 pr-3 py-2 text-xs rounded-xl glass-input border-emerald-500 focus:border-emerald-500 focus:ring-emerald-500/20' 
+      : 'w-full pl-8 pr-3 py-2 text-xs rounded-xl glass-input border-brand focus:border-brand focus:ring-brand/20'; // border-brand represents red accent
+  };
+
+  const getVehicleClass = () => {
+    if (customer.vehicleNumber.length === 0) return 'w-full pl-8 pr-3 py-2 text-xs rounded-xl glass-input';
+    return vehicleValid 
+      ? 'w-full pl-8 pr-3 py-2 text-xs rounded-xl glass-input border-emerald-500 focus:border-emerald-500 focus:ring-emerald-500/20' 
+      : 'w-full pl-8 pr-3 py-2 text-xs rounded-xl glass-input border-brand focus:border-brand focus:ring-brand/20';
+  };
+
   // Invoice Cart
   const [cart, setCart] = useState<any[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Card' | 'UPI' | 'Credit'>('Cash');
@@ -158,8 +204,11 @@ export const Billing: React.FC = () => {
       return;
     }
 
-    if (!customer.name || !customer.mobile || !customer.vehicleNumber) {
-      alert('Please fill in all customer detail fields.');
+    const isPhoneOk = /^\d{10}$/.test(customer.mobile);
+    const isVehicleOk = /^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/.test(customer.vehicleNumber);
+
+    if (!customer.name || !isPhoneOk || !isVehicleOk) {
+      alert('Please fix validation errors before checkout. Phone must be 10 digits and vehicle reg format valid (e.g. TG08GU3055).');
       return;
     }
 
@@ -177,6 +226,10 @@ export const Billing: React.FC = () => {
       // Reset states
       setCart([]);
       setCustomer({ name: '', mobile: '', vehicleNumber: '' });
+      setPhoneValid(false);
+      setVehicleValid(false);
+      setPhoneError('');
+      setVehicleError('');
       
       // Load completed receipt
       setCompletedInvoice(res.data);
@@ -257,10 +310,13 @@ export const Billing: React.FC = () => {
                     required
                     placeholder="e.g. 9876543210"
                     value={customer.mobile}
-                    onChange={(e) => setCustomer({ ...customer, mobile: e.target.value })}
-                    className="w-full pl-8 pr-3 py-2 text-xs rounded-xl glass-input"
+                    onChange={(e) => handlePhoneChange(e.target.value)}
+                    className={getPhoneClass()}
                   />
                 </div>
+                {phoneError && (
+                  <span className="text-[9px] text-brand font-bold mt-1 block leading-tight">{phoneError}</span>
+                )}
               </div>
 
               <div>
@@ -272,12 +328,15 @@ export const Billing: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. KA-01-AB-1234"
+                    placeholder="e.g. TG08GU3055"
                     value={customer.vehicleNumber}
-                    onChange={(e) => setCustomer({ ...customer, vehicleNumber: e.target.value })}
-                    className="w-full pl-8 pr-3 py-2 text-xs rounded-xl glass-input"
+                    onChange={(e) => handleVehicleChange(e.target.value)}
+                    className={getVehicleClass()}
                   />
                 </div>
+                {vehicleError && (
+                  <span className="text-[9px] text-brand font-bold mt-1 block leading-tight">{vehicleError}</span>
+                )}
               </div>
             </div>
           </div>
@@ -517,8 +576,8 @@ export const Billing: React.FC = () => {
             {/* Checkout Action button */}
             <button
               type="submit"
-              disabled={checkoutLoading || cart.length === 0}
-              className="w-full py-4 bg-brand hover:bg-brand-hover text-white rounded-2xl font-black text-sm flex items-center justify-center space-x-2 shadow-glow-red hover:scale-[1.01] transition-all"
+              disabled={checkoutLoading || cart.length === 0 || !phoneValid || !vehicleValid || !customer.name}
+              className="w-full py-4 bg-brand hover:bg-brand-hover text-white disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none rounded-2xl font-black text-sm flex items-center justify-center space-x-2 shadow-glow-red hover:scale-[1.01] transition-all"
             >
               {checkoutLoading ? (
                 <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
