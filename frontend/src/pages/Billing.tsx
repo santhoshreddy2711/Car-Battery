@@ -37,6 +37,23 @@ export const Billing: React.FC = () => {
   const [vehicleValid, setVehicleValid] = useState(false);
   const [phoneError, setPhoneError] = useState('');
   const [vehicleError, setVehicleError] = useState('');
+  const [nameError, setNameError] = useState('');
+
+  const handleNameChange = (val: string) => {
+    // Keep only alphabetic characters and spaces
+    const sanitized = val.replace(/[^A-Za-z\s]/g, '');
+    setCustomer(prev => ({ ...prev, name: sanitized }));
+    if (sanitized.length === 0 && val.length > 0) {
+      setNameError('Customer name must contain only alphabets.');
+    } else {
+      setNameError('');
+    }
+  };
+
+  const getNameClass = () => {
+    if (customer.name.length === 0) return 'w-full pl-8 pr-3 py-2 text-xs rounded-xl glass-input';
+    return 'w-full pl-8 pr-3 py-2 text-xs rounded-xl glass-input border-emerald-500 focus:border-emerald-500 focus:ring-emerald-500/20';
+  };
 
   const handlePhoneChange = (val: string) => {
     // Accept only digits and limit to 10 characters
@@ -230,6 +247,7 @@ export const Billing: React.FC = () => {
       setVehicleValid(false);
       setPhoneError('');
       setVehicleError('');
+      setNameError('');
       
       // Load completed receipt
       setCompletedInvoice(res.data);
@@ -293,10 +311,13 @@ export const Billing: React.FC = () => {
                     required
                     placeholder="e.g. John Doe"
                     value={customer.name}
-                    onChange={(e) => setCustomer({ ...customer, name: e.target.value })}
-                    className="w-full pl-8 pr-3 py-2 text-xs rounded-xl glass-input"
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    className={getNameClass()}
                   />
                 </div>
+                {nameError && (
+                  <span className="text-[9px] text-brand font-bold mt-1 block leading-tight">{nameError}</span>
+                )}
               </div>
 
               <div>
