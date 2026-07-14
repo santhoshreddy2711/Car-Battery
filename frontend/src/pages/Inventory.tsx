@@ -6,7 +6,6 @@ import {
   Edit, 
   Trash2, 
   Barcode, 
-  QrCode, 
   Upload, 
   AlertTriangle,
   FolderOpen,
@@ -200,61 +199,6 @@ export const Inventory: React.FC = () => {
     return (
       <svg className="w-full h-16 text-zinc-900 dark:text-white" viewBox="0 0 240 60">
         {bars}
-      </svg>
-    );
-  };
-
-  // QR Code SVG Renderer (draws a neat mock grid)
-  const renderQRGrid = (code: string) => {
-    const size = 21;
-    const pixels = [];
-    const seed = code.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    
-    for (let x = 0; x < size; x++) {
-      for (let y = 0; y < size; y++) {
-        // Create finder patterns on corners
-        const isFinder = (x < 7 && y < 7) || (x > 13 && y < 7) || (x < 7 && y > 13);
-        let filled = false;
-        
-        if (isFinder) {
-          // Standard QR corner patterns
-          const isBorder = x === 0 || x === 6 || y === 0 || y === 6 || 
-                           (x === 20 && y === 0) || (x === 14 && y === 0) || (x === 20 && y === 6) || (x === 14 && y === 6) ||
-                           (x === 0 && y === 20) || (x === 6 && y === 20) || (x === 0 && y === 14) || (x === 6 && y === 14);
-          const isCenter = (x === 2 && y === 2) || (x === 3 && y === 2) || (x === 4 && y === 2) ||
-                           (x === 2 && y === 3) || (x === 3 && y === 3) || (x === 4 && y === 3) ||
-                           (x === 2 && y === 4) || (x === 3 && y === 4) || (x === 4 && y === 4);
-                           // Repeat for other corners
-          const isCenterRight = (x === 16 && y === 2) || (x === 17 && y === 2) || (x === 18 && y === 2) ||
-                                (x === 16 && y === 3) || (x === 17 && y === 3) || (x === 18 && y === 3) ||
-                                (x === 16 && y === 4) || (x === 17 && y === 4) || (x === 18 && y === 4);
-          const isCenterBottom = (x === 2 && y === 16) || (x === 3 && y === 16) || (x === 4 && y === 16) ||
-                                 (x === 2 && y === 17) || (x === 3 && y === 17) || (x === 4 && y === 17) ||
-                                 (x === 2 && y === 18) || (x === 3 && y === 18) || (x === 4 && y === 18);
-          filled = isBorder || isCenter || isCenterRight || isCenterBottom;
-        } else {
-          // pseudo-random generation based on seed
-          filled = ((x * y + seed) % 5 === 0) || ((x + y + seed) % 3 === 0);
-        }
-
-        if (filled) {
-          pixels.push(
-            <rect 
-              key={`${x}-${y}`} 
-              x={x * 8} 
-              y={y * 8} 
-              width={8} 
-              height={8} 
-              fill="currentColor" 
-            />
-          );
-        }
-      }
-    }
-
-    return (
-      <svg className="w-44 h-44 text-zinc-950 dark:text-zinc-50" viewBox="0 0 168 168">
-        {pixels}
       </svg>
     );
   };
@@ -584,12 +528,12 @@ export const Inventory: React.FC = () => {
         </div>
       )}
 
-      {/* Code Modal (Barcode & QR Code) */}
+      {/* Code Modal (Barcode) */}
       {isCodeOpen && selectedProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="w-full max-w-md glass-panel rounded-3xl p-6 shadow-premium dark:shadow-premium-dark text-center">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-200/40 dark:border-zinc-800/40 mb-6">
-              <h2 className="text-base font-extrabold">Product Code Generators</h2>
+              <h2 className="text-base font-extrabold">Product Barcode</h2>
               <button onClick={() => setIsCodeOpen(false)} className="p-1 rounded-lg hover:bg-zinc-100 text-zinc-400">
                 <X size={16} />
               </button>
@@ -601,14 +545,6 @@ export const Inventory: React.FC = () => {
                 <span className="font-mono text-[10px] text-zinc-500 mb-3 block">{selectedProduct.productId}</span>
                 <div className="bg-white p-4 rounded-2xl inline-flex justify-center border border-zinc-200/40">
                   {renderBarcodeLines(selectedProduct.productId)}
-                </div>
-              </div>
-
-              <div>
-                <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest block mb-1">Dynamic Verification QR</span>
-                <span className="text-[9px] text-zinc-400 font-semibold mb-3 block">Contains battery brand, capacity, and SKU details</span>
-                <div className="bg-white p-3 rounded-3xl inline-flex justify-center border border-zinc-200/40">
-                  {renderQRGrid(JSON.stringify(selectedProduct))}
                 </div>
               </div>
 
