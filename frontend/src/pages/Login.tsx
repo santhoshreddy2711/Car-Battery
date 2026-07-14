@@ -24,16 +24,6 @@ export const Login: React.FC = () => {
     }
   };
 
-  const fillCredentials = (role: 'admin' | 'staff') => {
-    if (role === 'admin') {
-      setEmail('admin@carbattery.com');
-      setPassword('Admin@123');
-    } else {
-      setEmail('staff@carbattery.com');
-      setPassword('Staff@123');
-    }
-  };
-
   return (
     <div className="min-h-screen w-full flex items-stretch overflow-hidden bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-950 dark:to-zinc-900 transition-colors duration-300">
       
@@ -127,27 +117,6 @@ export const Login: React.FC = () => {
               )}
             </button>
           </form>
-
-          {/* Quick-Fill Credentials */}
-          <div className="mt-8 pt-6 border-t border-zinc-200/50 dark:border-zinc-800/50 text-center">
-            <span className="text-[10px] text-zinc-400 font-extrabold uppercase tracking-widest block mb-3">Quick-Fill Evaluation Logs</span>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => fillCredentials('admin')}
-                className="py-2.5 px-3 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800/60 dark:hover:bg-zinc-800 border border-zinc-200/50 dark:border-zinc-700/50 text-zinc-700 dark:text-zinc-300 rounded-xl text-xs font-bold transition-all"
-              >
-                Admin Credentials
-              </button>
-              <button
-                type="button"
-                onClick={() => fillCredentials('staff')}
-                className="py-2.5 px-3 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800/60 dark:hover:bg-zinc-800 border border-zinc-200/50 dark:border-zinc-700/50 text-zinc-700 dark:text-zinc-300 rounded-xl text-xs font-bold transition-all"
-              >
-                Staff Credentials
-              </button>
-            </div>
-          </div>
 
         </div>
       </div>
