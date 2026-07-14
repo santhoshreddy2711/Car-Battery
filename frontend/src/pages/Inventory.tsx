@@ -135,47 +135,85 @@ export const Inventory: React.FC = () => {
     setIsCodeOpen(true);
   };
 
-  const handleLoadSampleBulk = () => {
-    const sample = [
-      {
-        "productId": "AMR-HI-55AH",
-        "brand": "Amaron",
-        "model": "HiLife 55Ah Blue",
-        "vehicleType": "Car",
-        "capacity": 55,
-        "warrantyPeriod": 36,
-        "purchasePrice": 3800,
-        "sellingPrice": 5200,
-        "quantity": 15,
-        "supplier": "Amaron Power Systems",
-        "location": "Aisle B, Shelf 3"
-      },
-      {
-        "productId": "EXD-XP-32AH",
-        "brand": "Exide",
-        "model": "Xpress 32Ah Black",
-        "vehicleType": "Car",
-        "capacity": 32,
-        "warrantyPeriod": 24,
-        "purchasePrice": 2200,
-        "sellingPrice": 3100,
-        "quantity": 8,
-        "supplier": "Exide Distributors Ltd",
-        "location": "Aisle A, Shelf 5"
+  const parseBulkInput = (input: string) => {
+    const lines = input.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    const parsedProducts: any[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      // Split by tab first (Excel format), then by comma (CSV format)
+      let parts = line.split('\t');
+      if (parts.length <= 1) {
+        parts = line.split(',');
       }
-    ];
-    setBulkInput(JSON.stringify(sample, null, 2));
+      parts = parts.map(p => p.trim());
+
+      // Skip lines that don't have enough product details
+      if (parts.length < 3) {
+        continue;
+      }
+
+      const brand = parts[0] || 'Generic';
+      const model = parts[1] || 'Unknown';
+      const vehicleType = parts[2] || 'Car';
+      const capacity = Number(parts[3]) || 35;
+      const warrantyPeriod = Number(parts[4]) || 12;
+      const purchasePrice = Number(parts[5]) || 0;
+      const sellingPrice = Number(parts[6]) || 0;
+      const quantity = Number(parts[7]) || 0;
+      const location = parts[8] || 'Aisle A';
+      const supplier = parts[9] || 'Imported';
+
+      // Auto-generate a clean SKU/productId based on brand, model and random digit
+      const productId = `BAT-${brand.substring(0, 3).toUpperCase()}-${model.substring(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      parsedProducts.push({
+        productId,
+        brand,
+        model,
+        vehicleType,
+        capacity,
+        warrantyPeriod,
+        purchasePrice,
+        sellingPrice,
+        quantity,
+        location,
+        supplier
+      });
+    }
+
+    return parsedProducts;
+  };
+
+  const handleLoadSampleBulk = () => {
+    const sample = 
+`Exide, Xpress 32Ah, Car, 32, 24, 2200, 3100, 8, Shelf 5, Exide Distributors
+Amaron, HiLife 55Ah, Car, 55, 36, 3800, 5200, 15, Shelf 3, Amaron Power Systems`;
+    setBulkInput(sample);
   };
 
   const handleBulkImport = async () => {
+    setError('');
     try {
-      const parsed = JSON.parse(bulkInput);
+      let parsed: any[] = [];
+      const trimmed = bulkInput.trim();
+      
+      if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+        parsed = JSON.parse(bulkInput);
+      } else {
+        parsed = parseBulkInput(bulkInput);
+      }
+
+      if (parsed.length === 0) {
+        throw new Error('No valid products parsed. Enter at least: Brand, Model, VehicleType.');
+      }
+
       await axios.post('/api/inventory/bulk-import', { products: parsed });
       setIsBulkOpen(false);
       setBulkInput('');
       fetchInventory();
     } catch (err: any) {
-      setError(err.message || 'Invalid JSON format');
+      setError(err.message || 'Invalid format. Make sure columns are separated by commas or tab characters.');
     }
   };
 
@@ -574,12 +612,12 @@ export const Inventory: React.FC = () => {
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-zinc-500 font-medium">Paste product list in JSON Array format:</span>
+                <span className="text-xs text-zinc-500 font-medium">Paste Excel columns or CSV lines here (tab/comma separated):</span>
                 <button 
                   onClick={handleLoadSampleBulk} 
                   className="text-xs text-brand font-extrabold hover:underline"
                 >
-                  Load Sample JSON
+                  Load Sample Excel/CSV
                 </button>
               </div>
 
@@ -592,19 +630,7 @@ export const Inventory: React.FC = () => {
               <textarea
                 value={bulkInput}
                 onChange={(e) => setBulkInput(e.target.value)}
-                placeholder='[
-  {
-    "productId": "EXD-DIN65-RED",
-    "brand": "Exide",
-    "model": "Express DIN65 Red",
-    "vehicleType": "Car",
-    "capacity": 65,
-    "warrantyPeriod": 36,
-    "purchasePrice": 4200,
-    "sellingPrice": 5800,
-    "quantity": 10
-  }
-]'
+                placeholder="Exide, Xpress 32Ah, Car, 32, 24, 2200, 3100, 8, Shelf 5, Exide Distributors&#10;Amaron, HiLife 55Ah, Car, 55, 36, 3800, 5200, 15, Shelf 3, Amaron Power Systems&#10;&#10;Format: Brand, Model, VehicleType, Capacity(Ah), Warranty(M), CostPrice, RetailPrice, Quantity, [Location], [Supplier]"
                 rows={10}
                 className="w-full p-3 font-mono text-[10px] rounded-2xl glass-input"
               />
