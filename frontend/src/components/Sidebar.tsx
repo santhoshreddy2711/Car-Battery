@@ -28,7 +28,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
   const { user, logout, updateUserBranch } = useAuth();
-  const { unreadCount, triggerScan } = useNotifications();
+  const { triggerScan } = useNotifications();
   const [darkMode, setDarkMode] = useState(false);
   const [branches, setBranches] = useState<any[]>([]);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -175,12 +175,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
                       <span>{item.label}</span>
                     </div>
 
-                    {/* Low stock alerts badge count */}
-                    {item.id === 'inventory' && unreadCount > 0 && (
-                      <span className="bg-white text-brand text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse">
-                        {unreadCount}
-                      </span>
-                    )}
+
                   </button>
                 );
               })}
