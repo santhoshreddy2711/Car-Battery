@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext.js';
 import { 
   DollarSign, 
   ShoppingBag, 
@@ -32,6 +33,7 @@ import {
 } from 'recharts';
 
 export const Dashboard: React.FC = () => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     revenue: 0,
@@ -65,8 +67,8 @@ export const Dashboard: React.FC = () => {
           suppliersRes,
           purchasesRes
         ] = await Promise.all([
-          axios.get('/api/billing'),
-          axios.get('/api/inventory'),
+          axios.get('/api/billing', { params: { branchId: user?.branchId || undefined } }),
+          axios.get('/api/inventory', { params: { branchId: user?.branchId || undefined } }),
           axios.get('/api/customers'),
           axios.get('/api/warranty'),
           axios.get('/api/suppliers'),
@@ -184,7 +186,7 @@ export const Dashboard: React.FC = () => {
     };
 
     fetchDashboardData();
-  }, []);
+  }, [user?.branchId]);
 
   const kpis = [
     { title: 'Verified Revenue', value: `₹${stats.revenue.toLocaleString()}`, change: '+14.2%', isPositive: true, icon: DollarSign, color: 'text-emerald-500 bg-emerald-500/10' },

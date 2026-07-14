@@ -40,7 +40,7 @@ export const BranchManager: React.FC = () => {
     try {
       const [bRes, pRes] = await Promise.all([
         axios.get('/api/branches'),
-        axios.get('/api/inventory')
+        axios.get('/api/inventory?branchId=all')
       ]);
       setBranches(bRes.data);
       setProducts(pRes.data);

@@ -12,7 +12,9 @@ router.get('/', protect, async (req: AuthRequest, res) => {
   const filter: any = {};
 
   if (branchId) {
-    filter.branchId = branchId;
+    if (branchId !== 'all') {
+      filter.branchId = branchId;
+    }
   } else if (req.user?.role !== 'Admin') {
     filter.branchId = req.user?.branchId || 'main';
   }

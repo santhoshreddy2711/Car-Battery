@@ -13,8 +13,10 @@ import {
   X,
   FileDown
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext.js';
 
 export const Inventory: React.FC = () => {
+  const { user } = useAuth();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -54,7 +56,8 @@ export const Inventory: React.FC = () => {
         params: {
           search,
           brand: filterBrand || undefined,
-          vehicleType: filterType || undefined
+          vehicleType: filterType || undefined,
+          branchId: user?.branchId || undefined
         }
       });
       setProducts(res.data);
@@ -67,7 +70,7 @@ export const Inventory: React.FC = () => {
 
   useEffect(() => {
     fetchInventory();
-  }, [search, filterBrand, filterType]);
+  }, [search, filterBrand, filterType, user?.branchId]);
 
   const handleOpenForm = (prod: any = null) => {
     if (prod) {
@@ -107,10 +110,14 @@ export const Inventory: React.FC = () => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...formData,
+        branchId: user?.branchId || 'main'
+      };
       if (editingId) {
-        await axios.put(`/api/inventory/${editingId}`, formData);
+        await axios.put(`/api/inventory/${editingId}`, payload);
       } else {
-        await axios.post('/api/inventory', formData);
+        await axios.post('/api/inventory', payload);
       }
       setIsFormOpen(false);
       fetchInventory();

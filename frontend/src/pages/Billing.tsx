@@ -18,8 +18,10 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext.js';
+import { useAuth } from '../context/AuthContext.js';
 
 export const Billing: React.FC = () => {
+  const { user } = useAuth();
   const { fetchNotifications } = useNotifications();
   const [products, setProducts] = useState<any[]>([]);
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -110,11 +112,13 @@ export const Billing: React.FC = () => {
   useEffect(() => {
     fetchProducts();
     fetchInvoices();
-  }, []);
+  }, [user?.branchId]);
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get('/api/inventory');
+      const res = await axios.get('/api/inventory', {
+        params: { branchId: user?.branchId || undefined }
+      });
       setProducts(res.data);
     } catch (err) {
       console.error(err);
@@ -123,7 +127,9 @@ export const Billing: React.FC = () => {
 
   const fetchInvoices = async () => {
     try {
-      const res = await axios.get('/api/billing');
+      const res = await axios.get('/api/billing', {
+        params: { branchId: user?.branchId || undefined }
+      });
       setInvoices(res.data);
     } catch (err) {
       console.error(err);
@@ -237,7 +243,8 @@ export const Billing: React.FC = () => {
         vehicleNumber: customer.vehicleNumber,
         items: cart,
         paymentMethod,
-        status: 'Paid'
+        status: 'Paid',
+        branchId: user?.branchId || 'main'
       });
 
       // Reset states
