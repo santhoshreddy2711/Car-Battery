@@ -4,7 +4,11 @@ import { OrbitControls, Stars, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 
 // 3D Car Battery Model
-const BatteryModel: React.FC = () => {
+interface BatteryModelProps {
+  isHero?: boolean;
+}
+
+const BatteryModel: React.FC<BatteryModelProps> = ({ isHero = true }) => {
   const groupRef = useRef<THREE.Group>(null);
   
   // Animate battery rotation and mouse tilt
@@ -23,7 +27,7 @@ const BatteryModel: React.FC = () => {
   });
 
   return (
-    <group ref={groupRef} position={[0, -0.4, 0]}>
+    <group ref={groupRef} position={[0, isHero ? 0.35 : -0.4, 0]}>
       {/* 1. Main Casing */}
       <mesh castShadow receiveShadow>
         <boxGeometry args={[2.2, 1.3, 1.2]} />
@@ -176,7 +180,7 @@ export const Canvas3D: React.FC<{ isHero?: boolean }> = ({ isHero = true }) => {
           color="#E53E3E" 
         />
 
-        <BatteryModel />
+        <BatteryModel isHero={isHero} />
         <ChargingParticles />
         <Stars radius={100} depth={50} count={300} factor={4} saturation={0.5} fade speed={1.5} />
         
