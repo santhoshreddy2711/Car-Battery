@@ -12,11 +12,6 @@ async function run() {
       })
     });
     
-    if (!loginRes.ok) {
-      const errText = await loginRes.text();
-      throw new Error(`Login failed with status ${loginRes.status}: ${errText}`);
-    }
-    
     const loginData = await loginRes.json();
     const token = loginData.token;
     console.log('Logged in successfully. Token acquired.');
@@ -25,33 +20,41 @@ async function run() {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     };
-    
-    console.log('\n--- Test 1: Fetching all inventory (branchId=all) ---');
-    const allRes = await fetch(`${baseURL}/api/inventory?branchId=all`, { headers });
-    const allData = await allRes.json();
-    console.log(`Status: ${allRes.status}`);
-    console.log(`Count: ${allData.length} products`);
-    if (allData.length > 0) {
-      console.log('Returned branchIds:', [...new Set(allData.map(p => p.branchId))]);
-    }
-    
-    console.log('\n--- Test 2: Fetching branch specific inventory (branchId=sub-north) ---');
-    const subNorthRes = await fetch(`${baseURL}/api/inventory?branchId=sub-north`, { headers });
-    const subNorthData = await subNorthRes.json();
-    console.log(`Status: ${subNorthRes.status}`);
-    console.log(`Count: ${subNorthData.length} products`);
-    if (subNorthData.length > 0) {
-      console.log('Returned branchIds:', [...new Set(subNorthData.map(p => p.branchId))]);
-    }
 
-    console.log('\n--- Test 3: Fetching default inventory (no branchId param) ---');
-    const defaultRes = await fetch(`${baseURL}/api/inventory`, { headers });
-    const defaultData = await defaultRes.json();
-    console.log(`Status: ${defaultRes.status}`);
-    console.log(`Count: ${defaultData.length} products`);
-    if (defaultData.length > 0) {
-      console.log('Returned branchIds:', [...new Set(defaultData.map(p => p.branchId))]);
+    console.log('\n--- Test: Fetching a product to checkout ---');
+    const prodRes = await fetch(`${baseURL}/api/inventory`, { headers });
+    const products = await prodRes.json();
+    if (products.length === 0) {
+      console.log('No products found to checkout.');
+      return;
     }
+    const product = products[0];
+    console.log(`Using product: ${product.brand} ${product.model} (${product.productId})`);
+
+    console.log('\n--- Test: Performing checkout ---');
+    const checkoutRes = await fetch(`${baseURL}/api/billing`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        customerName: 'Diagnostic Test Customer',
+        mobileNumber: '9876543210',
+        vehicleNumber: 'TS09AA1234',
+        items: [{
+          productId: product.productId,
+          qty: 1,
+          price: product.sellingPrice,
+          gstRate: 18,
+          discount: 0
+        }],
+        paymentMethod: 'Cash',
+        status: 'Paid',
+        branchId: 'main'
+      })
+    });
+
+    console.log(`Status: ${checkoutRes.status}`);
+    const resData = await checkoutRes.json();
+    console.log('Response:', JSON.stringify(resData, null, 2));
 
   } catch (error) {
     console.error('Error running test:', error.message);

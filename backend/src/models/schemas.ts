@@ -27,7 +27,6 @@ export interface ICustomer {
   purchaseHistory: string[];
   serviceHistory: Array<{ date: string; description: string; cost: number }>;
   vehicleRecords: Array<{ vehicleNumber: string; model: string; lastServiceDate?: string }>;
-  branchId?: string;
   createdAt?: string;
   updatedAt?: string;
 }
