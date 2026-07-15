@@ -8,10 +8,19 @@ const router = Router();
 // @route   GET /api/customers
 // @access  Private
 router.get('/', protect, async (req: AuthRequest, res) => {
-  const { search } = req.query;
+  const { search, branchId } = req.query;
+  const filter: any = {};
+
+  if (branchId) {
+    if (branchId !== 'all') {
+      filter.branchId = branchId;
+    }
+  } else if (req.user?.role !== 'Admin') {
+    filter.branchId = req.user?.branchId || 'main';
+  }
 
   try {
-    let customers = await Customer.find({});
+    let customers = await Customer.find(filter);
 
     if (search) {
       const searchStr = String(search).toLowerCase();
@@ -67,7 +76,7 @@ router.get('/:id', protect, async (req: AuthRequest, res) => {
 // @route   POST /api/customers
 // @access  Private
 router.post('/', protect, async (req: AuthRequest, res) => {
-  const { name, mobile, email, vehicleNumber } = req.body;
+  const { name, mobile, email, vehicleNumber, branchId } = req.body;
 
   try {
     const exists = await Customer.findOne({ mobile });
@@ -83,7 +92,8 @@ router.post('/', protect, async (req: AuthRequest, res) => {
       loyaltyPoints: 0,
       purchaseHistory: [],
       serviceHistory: [],
-      vehicleRecords: [{ vehicleNumber, model: 'Not Specified' }]
+      vehicleRecords: [{ vehicleNumber, model: 'Not Specified' }],
+      branchId: branchId || req.user?.branchId || 'main'
     });
 
     res.status(201).json(customer);

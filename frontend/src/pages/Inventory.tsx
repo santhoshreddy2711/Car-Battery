@@ -215,7 +215,11 @@ Amaron, HiLife 55Ah, Car, 55, 36, 3800, 5200, 15, Shelf 3, Amaron Power Systems`
         throw new Error('No valid products parsed. Enter at least: Brand, Model, VehicleType.');
       }
 
-      await axios.post('/api/inventory/bulk-import', { products: parsed });
+      const productsWithBranch = parsed.map(p => ({
+        ...p,
+        branchId: p.branchId || user?.branchId || 'main'
+      }));
+      await axios.post('/api/inventory/bulk-import', { products: productsWithBranch });
       setIsBulkOpen(false);
       setBulkInput('');
       fetchInventory();

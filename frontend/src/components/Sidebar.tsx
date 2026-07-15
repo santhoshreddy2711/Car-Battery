@@ -201,7 +201,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
                 </div>
                 <div className="overflow-hidden">
                   <span className="font-bold text-xs block text-ellipsis overflow-hidden whitespace-nowrap">{user?.name || 'Operator'}</span>
-                  <span className="text-[10px] text-zinc-400 font-medium capitalize">{user?.role || 'Staff'}</span>
+                  <span className="text-[10px] text-zinc-400 font-medium capitalize">
+                    {user?.role || 'Staff'} • {branches.find(b => b.code === user?.branchId)?.name || 'Main HQ'}
+                  </span>
                 </div>
               </div>
               <button 

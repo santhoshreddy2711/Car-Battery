@@ -25,6 +25,7 @@ export const Billing: React.FC = () => {
   const { fetchNotifications } = useNotifications();
   const [products, setProducts] = useState<any[]>([]);
   const [invoices, setInvoices] = useState<any[]>([]);
+  const [branches, setBranches] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   
   // Invoice Customer Form
@@ -112,7 +113,17 @@ export const Billing: React.FC = () => {
   useEffect(() => {
     fetchProducts();
     fetchInvoices();
+    fetchBranches();
   }, [user?.branchId]);
+
+  const fetchBranches = async () => {
+    try {
+      const res = await axios.get('/api/branches');
+      setBranches(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -285,6 +296,22 @@ export const Billing: React.FC = () => {
     p.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.model.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Find branch details for the receipt print header
+  const invoiceBranch = completedInvoice 
+    ? (branches.find(b => b.code === completedInvoice.branchId) || {
+        name: 'CAR Battery ERP',
+        location: 'PLOT 42, AUTOMOTIVE INDUSTRIAL STATE, BANGALORE',
+        contactNumber: '+91 99000 88000',
+        code: 'main'
+      })
+    : null;
+
+  const invoiceGst = invoiceBranch
+    ? (invoiceBranch.code === 'main' 
+        ? '29AAACG0943R1ZS' 
+        : `29${invoiceBranch.code.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 5).padEnd(5, 'X')}0943R1ZS`)
+    : '';
 
   return (
     <div className="space-y-6">
@@ -647,10 +674,12 @@ export const Billing: React.FC = () => {
               {/* Header */}
               <div className="flex justify-between items-start mb-6 pb-6 border-b border-dashed border-zinc-300 dark:border-zinc-800">
                 <div>
-                  <h1 className="text-xl font-black tracking-tight text-brand uppercase">CAR Battery ERP</h1>
-                  <span className="text-[10px] text-zinc-400 font-bold block">PLOT 42, AUTOMOTIVE INDUSTRIAL STATE</span>
-                  <span className="text-[10px] text-zinc-400 font-bold block">BANGALORE, KARNATAKA, INDIA</span>
-                  <span className="text-[10px] text-zinc-400 font-bold block">GSTIN: 29AAACG0943R1ZS</span>
+                  <h1 className="text-xl font-black tracking-tight text-brand uppercase">{invoiceBranch?.name}</h1>
+                  <span className="text-[10px] text-zinc-400 font-bold block uppercase">{invoiceBranch?.location}</span>
+                  {invoiceBranch?.contactNumber && (
+                    <span className="text-[10px] text-zinc-400 font-bold block">PHONE: {invoiceBranch?.contactNumber}</span>
+                  )}
+                  <span className="text-[10px] text-zinc-400 font-bold block">GSTIN: {invoiceGst}</span>
                 </div>
                 <div className="text-right">
                   <h2 className="text-sm font-extrabold uppercase">Tax Invoice</h2>

@@ -12,8 +12,10 @@ import {
   Eye,
   CheckCircle
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext.js';
 
 export const Customers: React.FC = () => {
+  const { user } = useAuth();
   const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -33,7 +35,12 @@ export const Customers: React.FC = () => {
   const fetchCustomers = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('/api/customers', { params: { search } });
+      const res = await axios.get('/api/customers', {
+        params: {
+          search,
+          branchId: user?.branchId || undefined
+        }
+      });
       setCustomers(res.data);
     } catch (err) {
       console.error(err);
@@ -44,7 +51,7 @@ export const Customers: React.FC = () => {
 
   useEffect(() => {
     fetchCustomers();
-  }, [search]);
+  }, [search, user?.branchId]);
 
   const handleOpenHistory = (cust: any) => {
     setSelectedCust(cust);

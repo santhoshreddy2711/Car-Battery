@@ -151,7 +151,7 @@ router.post('/', protect, async (req: AuthRequest, res) => {
       discountTotal,
       totalAmount,
       paymentMethod: paymentMethod || 'Cash',
-      branchId: req.user?.branchId || 'main',
+      branchId: req.body.branchId || req.user?.branchId || 'main',
       status: status || 'Paid',
       staffId: req.user?._id || 'admin'
     });
@@ -205,7 +205,8 @@ router.post('/', protect, async (req: AuthRequest, res) => {
           vehicleNumber,
           model: processedItems[0]?.brand + ' ' + processedItems[0]?.model,
           lastServiceDate: new Date().toISOString().split('T')[0]
-        }]
+        }],
+        branchId: invoice.branchId
       });
     }
 
