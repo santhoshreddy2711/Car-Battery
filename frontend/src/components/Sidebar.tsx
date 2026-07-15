@@ -27,7 +27,7 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
-  const { user, logout, updateUserBranch } = useAuth();
+  const { user, logout } = useAuth();
   const { triggerScan } = useNotifications();
   const [darkMode, setDarkMode] = useState(false);
   const [branches, setBranches] = useState<any[]>([]);
@@ -133,25 +133,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
                 <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-widest">Enterprise ERP</span>
               </div>
             </div>
-
-            {/* Branch Switcher */}
-            {user && (
-              <div className="mb-6 bg-white/50 dark:bg-zinc-950/40 border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl p-3 flex flex-col space-y-1">
-                <span className="text-[9px] text-zinc-400 uppercase font-extrabold tracking-wider flex items-center">
-                  <Store size={10} className="mr-1" /> Active Branch
-                </span>
-                <select 
-                  value={user.branchId}
-                  onChange={(e) => updateUserBranch(e.target.value)}
-                  className="bg-transparent text-xs font-semibold focus:outline-none cursor-pointer w-full text-zinc-700 dark:text-zinc-300"
-                >
-                  <option value="main" className="dark:bg-zinc-900">Main HQ</option>
-                  {branches.filter(b => b.code !== 'main').map(b => (
-                    <option key={b.code} value={b.code} className="dark:bg-zinc-900">{b.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
 
             {/* Navigation Menu Links */}
             <nav className="space-y-1">
