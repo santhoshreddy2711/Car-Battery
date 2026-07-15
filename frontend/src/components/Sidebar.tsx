@@ -81,7 +81,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
     { id: 'warranty', label: 'Warranty Claims', icon: ShieldCheck },
     { id: 'purchases', label: 'Purchases PO', icon: Store },
     { id: 'suppliers', label: 'Suppliers Ledger', icon: Truck },
-    { id: 'branches', label: 'Branch Transfer', icon: GitFork },
     { id: 'reports', label: 'Reports & P&L', icon: FileSpreadsheet },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];

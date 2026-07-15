@@ -9,7 +9,6 @@ import { Customers } from './pages/Customers.js';
 import { Warranty } from './pages/Warranty.js';
 import { Purchases } from './pages/Purchases.js';
 import { Suppliers } from './pages/Suppliers.js';
-import { BranchManager } from './pages/BranchManager.js';
 import { Reports } from './pages/Reports.js';
 import { Settings } from './pages/Settings.js';
 
@@ -47,8 +46,6 @@ function App() {
         return <Purchases />;
       case 'suppliers':
         return <Suppliers />;
-      case 'branches':
-        return <BranchManager />;
       case 'reports':
         return <Reports />;
       case 'settings':
